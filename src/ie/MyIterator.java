@@ -58,7 +58,7 @@ public class MyIterator implements Iterator<Instance>{
 		try{
 			
 			tweets = new ArrayList<>();
-			preparedstatement = connection.prepareStatement("SELECT tweet,twitter_tweet_id from raw_tweet where label = 0 limit 180");
+			preparedstatement = connection.prepareStatement("SELECT tweet,twitter_tweet_id from raw_tweet where label = 0 limit 20");
 			resultset = preparedstatement.executeQuery();
 			while(resultset.next()){
 				Raw_tweet tmp = new Raw_tweet(resultset.getLong("twitter_tweet_id"), resultset.getString("tweet"));

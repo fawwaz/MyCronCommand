@@ -14,7 +14,7 @@ import cc.mallet.types.Sequence;
 public class MyIE {
 	public void doIE(){
 		boolean isLocal = true;
-		String lokasifile = "modelTABuatcobacoba";
+		String lokasifile = "modelTABuatcobacoba2";
 		CRF crf;
 		// Import ke database
 		MyPipe pipe = new MyPipe(isLocal);
@@ -46,7 +46,13 @@ public class MyIE {
     	    	
     	    	if (!error) {
     	    		
+    	    		StringBuffer sbname = new StringBuffer(); // for repairing text
+	    			StringBuffer sbplace = new StringBuffer(); // for repairing text
+	    			StringBuffer sbtime = new StringBuffer(); // for repairing text
+	    			StringBuffer sbinfo = new StringBuffer(); // for repairing text
+	    			
     	    		for (int j = 0; j < input.size(); j++){
+    	    			
     	    			StringBuffer buf = new StringBuffer();
 
     	    			for (int a = 0; a < k; a++){
@@ -54,31 +60,32 @@ public class MyIE {
 							//System.out.println(outputs[a].get(j).toString());
     	    			}
     	    			
-    	    			FeatureVector fv = (FeatureVector)input.get(j);
-	    				buf.append(fv.toString(true));
+    	    			//FeatureVector fv = (FeatureVector)input.get(j);
+	    				//buf.append(fv.toString(true));
 
     	    			String twitter_tweet_id = (String) testData.get(i).getName();
-    	    			//Harus Diganti jumlahnya ini sejenis offset
-    	    			// [LabelAnotasiFinal] OFFSET
-    	    			/*
-    	    			 fold 1 : 1420
-    	    			 fold 2 : 2746
-    	    			 fold 3 : 3974
-    	    			 fold 4 : 5248
-    	    			 fold 5 : 6541
-    	    			 fold 6 : 7893
-    	    			 fold 7 : 9326
-    	    			 fold 8 : 10631
-    	    			 fold 9 : 11906 / fold 8 belum dilakukan 
-    	    			 fold 10  : 13242
-    	    			*/
-    	    			int offset = 0;
-    	    			//System.out.println("Offset saat ini adalah "+offset);
-						//Long curr_sequence_id = base + j+offset ;//+ 11906 ;//+10500;
-						//updater.UpdateLabelAnotasiTweetFinal(buf.toString(), curr_sequence_id);
-						System.out.println(">"+buf.toString()+ " Name (Start): "+twitter_tweet_id);
+						//System.out.println(">"+buf.toString()+ " Name (Start): "+twitter_tweet_id);
+    	    			String currentlabel = buf.toString().trim();
+    	    			
+    	    			
+    	    			// GAK BISA GINI
+        	    		// karena kosong, coba ambila lagi dari database tweet yang bersesuaian make tokenizer di akhir terus make sequence number pas-pasin
+						if(currentlabel.equals("i-name")){
+							sbname.append(buf.toString());
+						}else if(currentlabel.equals("i-place")){
+							sbplace.append(buf.toString());
+						}else if(currentlabel.equals("i-time")){
+							sbtime.append(buf.toString());
+						}else if(currentlabel.equals("i-info")){
+							sbinfo.append(buf.toString());
+						}
 					}
 
+    	    		System.out.println("==== INFORMASI EVENT ====");
+    	    		System.out.println("NAMA EVENT \t\t: "		+sbname.toString());
+    	    		System.out.println("LOKASI EVENT \t\t: "	+sbplace.toString());
+    	    		System.out.println("WAKTU EVENT \t\t: "		+sbtime.toString());
+    	    		System.out.println("INFO EVENT : \t\t"		+sbinfo.toString());
 					System.out.println();
 				}
 			}
@@ -112,4 +119,9 @@ public class MyIE {
 		}
 		return answers;
 	}
+	
+	private void restructureText(){
+		
+	}
+	
 }
