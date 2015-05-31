@@ -9,6 +9,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/twitter4j-media-support-4.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/twitter4j-stream-4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/firebase-client-android-2.2.4.jar"/>
-	<classpathentry kind="lib" path="lib/firebase-client-jvm-2.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.0.jar"/>
+	<classpathentry kind="lib" path="lib/mallet-deps.jar"/>
+	<classpathentry kind="lib" path="lib/mallet.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,6 +1,9 @@
 package cronjava;
 
 
+import ie.MyIE;
+import ie.Twokenize;
+
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,6 +15,13 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -31,17 +41,45 @@ public class MyCron {
 	private ResultSet resultset = null;
 	
 	public static void main(String[] args) {
-		
 		// For Storing to database mysql, instead
-		/*
+		
+		// Dont know what connection mycron doing but actually is 
+		// taking tweet from server and inserting into database
+		// Sekarang di nonatifkan dulu
 		MyCron cron = new MyCron();
-		cron.startConnection();
-		cron.getTweet();
+		cron.startConnection(true);
+		//cron.getTweet();
+		//cron.getTokenization();
 		cron.CloseConnection();
-		*/
+		
+		// this part is for inserting event to IE.
+		MyIE ie = new MyIE();
+		ie.doIE();
+	}
+	
+	private ArrayList<String> getTokenization(){
+		ArrayList<String> retval = new ArrayList<>();
+		Twokenize tokenizer = new Twokenize();
+		try{
+			preparedstatement = connection.prepareStatement("SELECT * from raw_tweet where label = 0 limit 180");
+			resultset = preparedstatement.executeQuery();
+			while(resultset.next()){
+				ArrayList<String> tokens = (ArrayList<String>) tokenizer.tokenizeRawTweetText(resultset.getString("tweet"));
+				
+				System.out.println("=== BATAS TWEET ===");
+				for (int i = 0; i < tokens.size(); i++) {
+					System.out.println(tokens.get(i));
+				}
+				System.out.println("=== END BATAS TWEET ===");
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		return retval;
 	}
 	
 	private void getTweet(){
+		// Configuration builder akun pertama :
 		System.out.println("[INFO] Connecting to twitter");
 		ConfigurationBuilder conf = new ConfigurationBuilder();
 		conf.setDebugEnabled(true)
@@ -49,6 +87,44 @@ public class MyCron {
 			.setOAuthConsumerSecret("vdGlY077SK4Cw1y26oNxcfmBwe0oyFv1Xj17wKai72wZwBZsd6")
 			.setOAuthAccessToken("470084145-mFLzF9yv4wlfQuRWqUcARJ9Wpfjq4fQBG3Z52MNQ")
 			.setOAuthAccessTokenSecret("fkULaBtZKHfd7IUIYhmwYWgH0Fjm34QHygCeT5EoYgjlN");
+		
+		// Configuration builder akun keempat
+//		ConfigurationBuilder conf = new ConfigurationBuilder();
+//		conf.setDebugEnabled(true)
+//			.setOAuthConsumerKey("Lp9JSZ2iKO4nEQF9t284Fz1oC")
+//			.setOAuthConsumerSecret("0CfTaBMxohfF9KdQ4zpjlvvXGtIroJ3QwoERLEfDJBVCn1AhHE")
+//			.setOAuthAccessToken("3213949031-gZLGrDhPkuVBwI9Xf2BkPClCaftkybmoK1QyXMD")
+//			.setOAuthAccessTokenSecret("5KyGIkgC9ob6QN6YtmQoy2sPYFRKwpzgx8EpdBdxtyWN0");
+		
+		// Configuration builder akun kedua 
+//		ConfigurationBuilder conf = new ConfigurationBuilder();
+//		conf.setDebugEnabled(true)
+//			.setOAuthConsumerKey("iCkRoIfXUpzu2UeppuBcvM0IH")
+//			.setOAuthConsumerSecret("S3fNYVS0qR9rtQSbOWpbbUADxCvS6b93Cf5xDrY4KEsdAFCBl9")
+//			.setOAuthAccessToken("3213949031-XkPnBkOBozbmnh1UCynGRmHk0euUnB2tOsgfQSx")
+//			.setOAuthAccessTokenSecret("ql9zWICi0MvbJBBI7EqSN41jwqwcaXjiLJjWP1uCr5eWE");
+		
+		// Configuartion builder akun ketiga
+//		ConfigurationBuilder conf = new ConfigurationBuilder();
+//		conf.setDebugEnabled(true)
+//			.setOAuthConsumerKey("SNLe1piD2RCHTd9JZJO9WNQNy")
+//			.setOAuthConsumerSecret("tIYB9BkPfYxjEOrideAv21TcOd08apo8YAnweZoKb2CvadTLxt")
+//			.setOAuthAccessToken("3213949031-RWUhQyr39e4JXS5FLmbcE74XrmFnI1EN6MXTJXs")
+//			.setOAuthAccessTokenSecret("dDfW347PjYW6uHx263Ifg4t1ljylcz4YVfyPeBy9O4LW4");
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		TwitterFactory tf = new TwitterFactory(conf.build());
 		Twitter twitter = tf.getInstance();
@@ -149,22 +225,36 @@ public class MyCron {
 		
 	}
 	
-	private void startConnection(){
+	private void startConnection(boolean isLocal){
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		
+		String DB_USERNAME; 
+		String DB_PASSWORD; 
+		String DB_HOST;
+		String DB_PORT;
+		String DB_URL; 
+		String DB_NAME; 
+		String URL;
 		
-		String DB_USERNAME	 	= System.getenv("OPENSHIFT_MYSQL_DB_USERNAME");
-		String DB_PASSWORD		= System.getenv("OPENSHIFT_MYSQL_DB_PASSWORD");
-		String DB_HOST 			= System.getenv("OPENSHIFT_MYSQL_DB_HOST");
-		String DB_PORT 			= System.getenv("OPENSHIFT_MYSQL_DB_PORT");
-		String DB_URL 			= System.getenv("OPENSHIFT_MYSQL_DB_URL");
-		String DB_NAME			= System.getenv("OPENSHIFT_APP_NAME");
-		String URL 				= String.format("jdbc:mysql://%s:%s/%s", DB_HOST, DB_PORT, DB_NAME);
-		
+		if(!isLocal){
+			DB_USERNAME	 	= System.getenv("OPENSHIFT_MYSQL_DB_USERNAME");
+			DB_PASSWORD		= System.getenv("OPENSHIFT_MYSQL_DB_PASSWORD");
+			DB_HOST 			= System.getenv("OPENSHIFT_MYSQL_DB_HOST");
+			DB_PORT 			= System.getenv("OPENSHIFT_MYSQL_DB_PORT");
+			DB_URL 			= System.getenv("OPENSHIFT_MYSQL_DB_URL");
+			DB_NAME			= System.getenv("OPENSHIFT_APP_NAME");
+			URL 				= String.format("jdbc:mysql://%s:%s/%s", DB_HOST, DB_PORT, DB_NAME);
+		}else {
+			DB_USERNAME	 	= "admineuq7RcL";
+			DB_PASSWORD		= "NIuz5FBw59vg";
+			DB_URL 			= "mysql://127.0.0.1:3307/";
+			DB_NAME			= "mytomcatapp";
+			URL 			= "jdbc:"+DB_URL+DB_NAME;
+		}
 		/*
 		String DB_USERNAME	 	= "root";
 		String DB_PASSWORD		= "";
@@ -173,13 +263,6 @@ public class MyCron {
 		String URL 				= "jdbc:"+DB_URL+DB_NAME;
 		*/
 		
-		/*
-		String DB_USERNAME	 	= "admineuq7RcL";
-		String DB_PASSWORD		= "NIuz5FBw59vg";
-		String DB_URL 			= "mysql://127.0.0.1:3307/";
-		String DB_NAME			= "mytomcatapp";
-		String URL 				= "jdbc:"+DB_URL+DB_NAME;
-		/**/
 		
 		System.out.println("[INFO] Getting environment variables");
 		System.out.println("DB_USERNAME \t: "+ DB_USERNAME);
@@ -337,6 +420,30 @@ public class MyCron {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public void saveToFirebase(){
+		Firebase rootref = new Firebase("https://twitterevents.firebaseio.com/");
+		final AtomicBoolean done = new AtomicBoolean(false);
+		Map<String, String> data = new HashMap<>();
+		data.put("key1", "value1");
+		data.put("key2", "value2");
+		
+		System.out.println(data);
+		
+		rootref.child("ngetes").setValue(data,new Firebase.CompletionListener() {
+			
+			@Override
+			public void onComplete(FirebaseError arg0, Firebase arg1) {
+				if(arg0!=null){
+					System.out.println("Gak bisa disave");
+				}else{
+					System.out.println("Udah disave");
+				}
+				done.set(true);
+			}
+		});
+		 while (!done.get());
 	}
 	
 }
