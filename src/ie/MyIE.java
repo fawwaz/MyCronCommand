@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
 import cc.mallet.fst.CRF;
 import cc.mallet.fst.MaxLatticeDefault;
@@ -29,6 +30,8 @@ public class MyIE {
 			crf = (CRF) s.readObject();
 			s.close();
 			
+			MyUpdater mu = new MyUpdater();
+    		mu.startConnection(isLocal);
 			// Buat koneksi ke database untuk siapin insert query
 			for (int i = 0; i < testData.size(); i++) {
 				Sequence input = (Sequence)testData.get(i).getData();
@@ -46,10 +49,8 @@ public class MyIE {
     	    	
     	    	if (!error) {
     	    		
-    	    		StringBuffer sbname = new StringBuffer(); // for repairing text
-	    			StringBuffer sbplace = new StringBuffer(); // for repairing text
-	    			StringBuffer sbtime = new StringBuffer(); // for repairing text
-	    			StringBuffer sbinfo = new StringBuffer(); // for repairing text
+    	    		
+    	    		ArrayList<String> labelstobeanotated = new ArrayList<>();
 	    			
     	    		for (int j = 0; j < input.size(); j++){
     	    			
@@ -67,28 +68,19 @@ public class MyIE {
 						//System.out.println(">"+buf.toString()+ " Name (Start): "+twitter_tweet_id);
     	    			String currentlabel = buf.toString().trim();
     	    			
-    	    			
-    	    			// GAK BISA GINI
-        	    		// karena kosong, coba ambila lagi dari database tweet yang bersesuaian make tokenizer di akhir terus make sequence number pas-pasin
-						if(currentlabel.equals("i-name")){
-							sbname.append(buf.toString());
-						}else if(currentlabel.equals("i-place")){
-							sbplace.append(buf.toString());
-						}else if(currentlabel.equals("i-time")){
-							sbtime.append(buf.toString());
-						}else if(currentlabel.equals("i-info")){
-							sbinfo.append(buf.toString());
-						}
+    	    			labelstobeanotated.add(currentlabel);
+						
 					}
-
-    	    		System.out.println("==== INFORMASI EVENT ====");
-    	    		System.out.println("NAMA EVENT \t\t: "		+sbname.toString());
-    	    		System.out.println("LOKASI EVENT \t\t: "	+sbplace.toString());
-    	    		System.out.println("WAKTU EVENT \t\t: "		+sbtime.toString());
-    	    		System.out.println("INFO EVENT : \t\t"		+sbinfo.toString());
-					System.out.println();
+    	    		
+    	    		String twitter_tweet_id = (String) testData.get(i).getName();
+    	    		mu.UpdateEvent(labelstobeanotated, twitter_tweet_id);
+    	    		
+    	    		
+    	    		
 				}
 			}
+			
+			mu.CloseConnection();
 			
 			
 			
